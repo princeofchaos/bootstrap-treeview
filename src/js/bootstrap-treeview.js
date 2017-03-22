@@ -64,7 +64,9 @@
 		onNodeCollapsed: undefined,
 		onNodeDisabled: undefined,
 		onNodeEnabled: undefined,
+		onNodeBeforeExpanded: undefined,
 		onNodeExpanded: undefined,
+		onNodeAfterExpanded: undefined,
 		onNodeSelected: undefined,
 		onNodeUnchecked: undefined,
 		onNodeUnselected: undefined,
@@ -193,7 +195,9 @@
 		this.$element.off('nodeCollapsed');
 		this.$element.off('nodeDisabled');
 		this.$element.off('nodeEnabled');
+		this.$element.off('nodeBeforeExpanded');
 		this.$element.off('nodeExpanded');
+		this.$element.off('nodeAfterExpanded');
 		this.$element.off('nodeSelected');
 		this.$element.off('nodeUnchecked');
 		this.$element.off('nodeUnselected');
@@ -223,8 +227,16 @@
 			this.$element.on('nodeEnabled', this.options.onNodeEnabled);
 		}
 
+		if (typeof (this.options.onNodeBeforeExpanded) === 'function') {
+		    this.$element.on('nodeBeforeExpanded', this.options.onNodeBeforeExpanded);
+		}
+
 		if (typeof (this.options.onNodeExpanded) === 'function') {
 			this.$element.on('nodeExpanded', this.options.onNodeExpanded);
+		}
+
+		if (typeof (this.options.onNodeAfterExpanded) === 'function') {
+		    this.$element.on('nodeAfterExpanded', this.options.onNodeAfterExpanded);
 		}
 
 		if (typeof (this.options.onNodeSelected) === 'function') {
@@ -342,6 +354,11 @@
 			}
 
 			this.render();
+			
+  		        if (!this.options.silent && !node.selectable) {
+			    this.$element.trigger('nodeAfterExpanded', $.extend(true, {}, node));
+		        }
+
 		}
 	};
 
@@ -373,6 +390,7 @@
 			node.state.expanded = true;
 			if (!options.silent) {
 				this.$element.trigger('nodeExpanded', $.extend(true, {}, node));
+				this.$element.trigger('nodeBeforeExpanded', $.extend(true, {}, node));
 			}
 		}
 		else if (!state) {
@@ -896,6 +914,12 @@
 		}, this));
 
 		this.render();
+
+		this.forEachIdentifier(identifiers, options, $.proxy(function (node, options) {
+		    if (node.state.expanded && !options.silent) {
+			this.$element.trigger('nodeAfterExpanded', $.extend(true, {}, node));
+		    }
+		}, this));
 	};
 
 	Tree.prototype.expandLevels = function (nodes, level, options) {
@@ -937,6 +961,12 @@
 		}, this));
 		
 		this.render();
+
+		this.forEachIdentifier(identifiers, options, $.proxy(function (node, options) {
+		    if (node.state.expanded && !options.silent) {
+			this.$element.trigger('nodeAfterExpanded', $.extend(true, {}, node));
+		    }
+		}, this));
 	};
 
 
